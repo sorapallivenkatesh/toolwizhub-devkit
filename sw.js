@@ -1,6 +1,6 @@
 // sw.js — DevKit service worker. Everything is tiny and client-side, so the
 // whole app shell is precached for full offline use.
-const CACHE = "devkit-v1";
+const CACHE = "devkit-v2";
 const CORE = [
   "./", "index.html", "css/styles.css",
   "js/main.js", "js/util.js", "js/devutil.js",

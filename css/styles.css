@@ -404,3 +404,17 @@ textarea.inp { width: 100%; resize: vertical; line-height: 1.5; }
 .dk-swatch { width: 64px; height: 46px; border-radius: 10px; border: 1px solid var(--line-strong); flex-shrink: 0; }
 
 @media (max-width: 680px) { .dk-row { flex-direction: column; align-items: stretch; gap: 4px; } .dk-row__label { width: auto; } .dk-two { grid-template-columns: 1fr; } }
+
+/* markdown preview */
+.dk-md { padding: 14px; background: var(--glass); border: 1px solid var(--line); border-radius: var(--r-sm); max-height: 460px; overflow: auto; color: var(--soft); line-height: 1.65; }
+.dk-md h1, .dk-md h2, .dk-md h3, .dk-md h4, .dk-md h5, .dk-md h6 { color: #fff; font-family: var(--display); margin: 0.7em 0 0.3em; line-height: 1.2; }
+.dk-md a { color: var(--c1); }
+.dk-md code { background: rgba(255, 255, 255, 0.08); padding: 1px 5px; border-radius: 5px; font-family: var(--mono); font-size: 0.9em; }
+.dk-md-pre { background: #05060a; border: 1px solid var(--line); border-radius: 8px; padding: 10px; overflow: auto; font-family: var(--mono); font-size: 12.5px; }
+.dk-md blockquote { border-left: 3px solid var(--line-strong); margin: 0.5em 0; padding-left: 12px; color: var(--muted); }
+.dk-md ul, .dk-md ol { padding-left: 22px; }
+.dk-md img { max-width: 100%; border-radius: 8px; }
+.dk-md hr { border: none; border-top: 1px solid var(--line); margin: 1em 0; }
+
+/* focus polish */
+.pill:focus-visible, .btn:focus-visible, .cat-tab:focus-visible { outline: 2px solid var(--c1); outline-offset: 2px; }

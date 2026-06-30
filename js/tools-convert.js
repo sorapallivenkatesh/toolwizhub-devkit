@@ -1,6 +1,6 @@
 /* ░░░ tools-convert.js — Color converter · Number base ░░░ */
 import { el, select } from './util.js';
-import { inputLine, copyOut, note } from './devutil.js';
+import { inputArea, inputLine, copyOut, note } from './devutil.js';
 
 /* ── Color ─────────────────────────────────────────────────── */
 function hslToRgb(h, s, l, a = 1) {
@@ -72,10 +72,53 @@ function baseTool(mount) {
   run();
 }
 
+/* ── JSON ↔ CSV ────────────────────────────────────────────── */
+function csvField(v) { v = v == null ? '' : String(v); return /[",\n]/.test(v) ? '"' + v.replace(/"/g, '""') + '"' : v; }
+function parseCsv(text) {
+  const rows = []; let row = [], field = '', q = false;
+  for (let i = 0; i < text.length; i++) {
+    const c = text[i];
+    if (q) { if (c === '"') { if (text[i + 1] === '"') { field += '"'; i++; } else q = false; } else field += c; }
+    else if (c === '"') q = true;
+    else if (c === ',') { row.push(field); field = ''; }
+    else if (c === '\n') { row.push(field); rows.push(row); row = []; field = ''; }
+    else if (c !== '\r') field += c;
+  }
+  if (field.length || row.length) { row.push(field); rows.push(row); }
+  return rows.filter((r) => r.length > 1 || r[0] !== '');
+}
+function jsonCsvTool(mount) {
+  const dir = select([{ value: 'j2c', label: 'JSON → CSV' }, { value: 'c2j', label: 'CSV → JSON' }], 'j2c');
+  const input = inputArea('Input', { rows: 8, placeholder: '[{"name":"Ada","age":36},{"name":"Linus","age":54}]' });
+  const out = copyOut('Output', { area: true, rows: 8 });
+  const status = el('div', { class: 'dk-note' });
+  function run() {
+    status.className = 'dk-note'; status.textContent = '';
+    if (!input.get().trim()) { out.set(''); return; }
+    try {
+      if (dir.value === 'j2c') {
+        const data = JSON.parse(input.get()); const arr = Array.isArray(data) ? data : [data];
+        const keys = [...new Set(arr.flatMap((o) => Object.keys(o || {})))];
+        const lines = [keys.map(csvField).join(',')];
+        for (const o of arr) lines.push(keys.map((k) => csvField(o == null ? '' : (typeof o[k] === 'object' && o[k] !== null ? JSON.stringify(o[k]) : o[k]))).join(','));
+        out.set(lines.join('\n'));
+      } else {
+        const rows = parseCsv(input.get()); const head = rows[0] || [];
+        out.set(JSON.stringify(rows.slice(1).map((r) => Object.fromEntries(head.map((h, i) => [h, r[i] ?? '']))), null, 2));
+      }
+    } catch (e) { status.className = 'dk-note is-err'; status.textContent = '⚠ ' + e.message; out.set(''); }
+  }
+  input.on(run); dir.addEventListener('change', () => { run(); });
+  mount.append(el('div', { class: 'controls' }, [el('label', { class: 'dk-field' }, [el('span', { class: 'dk-field__label' }, 'Direction'), dir])]), input.node, out.node, status,
+    note('JSON must be an array of objects (or a single object). CSV uses RFC-style quoting.'));
+  run();
+}
+
 export default {
   group: 'Convert',
   tools: [
     { id: 'color', label: 'Color Converter', desc: 'HEX ↔ RGB ↔ HSL with a live swatch.', render: colorTool },
     { id: 'base', label: 'Number Base', desc: 'Binary · octal · decimal · hex (BigInt).', render: baseTool },
+    { id: 'jsoncsv', label: 'JSON ↔ CSV', desc: 'Convert between JSON arrays and CSV.', render: jsonCsvTool },
   ],
 };
