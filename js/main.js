@@ -33,6 +33,12 @@ function selectTool(id) {
   $('#tool-cat').textContent = tool.group;
   $('#tool-title').textContent = tool.label;
   $('#tool-desc').textContent = tool.desc;
+  // Per-tool title + meta description for deep links / SEO.
+  document.title = `${tool.label} — DevKit · ToolWizHub`;
+  const md = document.querySelector('meta[name="description"]');
+  if (md) md.setAttribute('content', `${tool.label} — ${tool.desc} Free & private, runs in your browser. A ToolWizHub DevKit tool.`);
+  const can = document.querySelector('link[rel="canonical"]');
+  if (can) can.setAttribute('href', `https://devkit.toolwizhub.com/#${tool.id}`);
   const mount = $('#tool-mount');
   mount.innerHTML = '';
   tool.render(mount);
