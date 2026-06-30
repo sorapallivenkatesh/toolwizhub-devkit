@@ -2,9 +2,11 @@
 import { el, select, button, field } from './util.js';
 import { inputArea, inputLine, copyOut, note, section } from './devutil.js';
 
-const td = new TextDecoder();
+const td = new TextDecoder(); const te = new TextEncoder();
 const toHex = (b) => [...b].map((x) => x.toString(16).padStart(2, '0')).join('');
-const b64urlToText = (s) => td.decode(Uint8Array.from(atob(s.replace(/-/g, '+').replace(/_/g, '/').padEnd(Math.ceil(s.length / 4) * 4, '=')), (c) => c.charCodeAt(0)));
+const b64urlToBytes = (s) => Uint8Array.from(atob(s.replace(/-/g, '+').replace(/_/g, '/').padEnd(Math.ceil(s.length / 4) * 4, '=')), (c) => c.charCodeAt(0));
+const b64urlToText = (s) => td.decode(b64urlToBytes(s));
+const pemToBuf = (pem) => Uint8Array.from(atob(pem.replace(/-----[^-]+-----/g, '').replace(/\s+/g, '')), (c) => c.charCodeAt(0)).buffer;
 
 /* ── Generators ────────────────────────────────────────────── */
 const ULID_ENC = '0123456789ABCDEFGHJKMNPQRSTVWXYZ';
@@ -82,9 +84,10 @@ function jwtTool(mount) {
   const header = copyOut('Header', { area: true, rows: 4 });
   const payload = copyOut('Payload', { area: true, rows: 8 });
   const summary = el('div', { class: 'dk-summary' });
+  let current = null;
   function fmtTime(sec) { const d = new Date(sec * 1000); return d.toUTCString() + ` (${d.toLocaleString()})`; }
   function inspect() {
-    summary.innerHTML = ''; header.set(''); payload.set('');
+    summary.innerHTML = ''; header.set(''); payload.set(''); current = null; vres('');
     const tok = input.get().trim();
     if (!tok) return;
     const parts = tok.split('.');
@@ -92,6 +95,8 @@ function jwtTool(mount) {
     let h, p;
     try { h = JSON.parse(b64urlToText(parts[0])); header.set(JSON.stringify(h, null, 2)); } catch (e) { summary.append(note('⚠ Could not decode header.', 'is-err')); return; }
     try { p = JSON.parse(b64urlToText(parts[1])); payload.set(JSON.stringify(p, null, 2)); } catch (e) { summary.append(note('⚠ Could not decode payload.', 'is-err')); return; }
+    current = { parts, alg: h.alg };
+    keyLabel.textContent = String(h.alg || '').toUpperCase().startsWith('HS') ? 'Secret (for HMAC)' : 'Public key (PEM, for RSA/EC)';
     const chips = [];
     const alg = h.alg || '?';
     chips.push(el('span', { class: 'dk-chip' }, `alg: ${alg}`));
@@ -103,8 +108,29 @@ function jwtTool(mount) {
     if (p.nbf) chips.push(el('span', { class: 'dk-chip ' + (+p.nbf > now ? 'is-bad' : '') }, `not before ${fmtTime(+p.nbf)}`));
     summary.append(el('div', { class: 'dk-chips' }, chips), note('Signature is not verified (that needs the secret/public key). Decoding only — never paste production secrets.'));
   }
+  // Verify section
+  const keyInput = inputArea('Key', { rows: 3, placeholder: 'HMAC secret, or -----BEGIN PUBLIC KEY----- PEM' });
+  const keyLabel = keyInput.node.querySelector('.dk-field__label');
+  const resultEl = el('div', { class: 'dk-chips' });
+  const vres = (msg, cls) => { resultEl.innerHTML = msg ? `<span class="dk-chip ${cls || ''}">${msg}</span>` : ''; };
+  async function verify() {
+    if (!current) { vres('Paste a valid JWT first.', 'is-bad'); return; }
+    const { parts, alg } = current; const a = String(alg || '').toUpperCase();
+    const data = te.encode(parts[0] + '.' + parts[1]); const sig = b64urlToBytes(parts[2] || '');
+    try {
+      let ok;
+      if (a.startsWith('HS')) { const k = await crypto.subtle.importKey('raw', te.encode(keyInput.get()), { name: 'HMAC', hash: 'SHA-' + a.slice(2) }, false, ['verify']); ok = await crypto.subtle.verify('HMAC', k, sig, data); }
+      else if (a.startsWith('RS')) { const k = await crypto.subtle.importKey('spki', pemToBuf(keyInput.get()), { name: 'RSASSA-PKCS1-v1_5', hash: 'SHA-' + a.slice(2) }, false, ['verify']); ok = await crypto.subtle.verify('RSASSA-PKCS1-v1_5', k, sig, data); }
+      else if (a === 'ES256') { const k = await crypto.subtle.importKey('spki', pemToBuf(keyInput.get()), { name: 'ECDSA', namedCurve: 'P-256' }, false, ['verify']); ok = await crypto.subtle.verify({ name: 'ECDSA', hash: 'SHA-256' }, k, sig, data); }
+      else { vres('Verification not supported for alg "' + alg + '".', 'is-bad'); return; }
+      vres(ok ? '✓ Signature valid' : '✗ Signature INVALID', ok ? 'is-ok' : 'is-bad');
+    } catch (e) { vres('⚠ ' + (e.message || e), 'is-bad'); }
+  }
   input.on(inspect);
-  mount.append(input.node, summary, header.node, payload.node);
+  mount.append(input.node, summary, header.node, payload.node,
+    section('Verify signature'), keyInput.node,
+    el('div', { class: 'actions' }, [button('Verify', { primary: true, onclick: verify })]), resultEl,
+    note('HS256/384/512 (secret), RS256/384/512 & ES256 (PEM public key) — verified locally via Web Crypto. Never paste production secrets.'));
   inspect();
 }
 
