@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Privacy — DevKit · ToolWizHub</title>
+  <meta name="description" content="DevKit runs entirely in your browser. Nothing you paste — tokens, text, passwords — is ever uploaded." />
+  <meta name="theme-color" content="#07070d" />
+  <link rel="icon" type="image/webp" href="assets/favicon.webp" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="css/styles.css" />
+</head>
+<body>
+  <div class="app">
+    <header class="appbar">
+      <a class="brand" href="./" aria-label="ToolWizHub DevKit">
+        <img class="brand__mark" src="assets/logo-icon.webp" alt="ToolWizHub" width="42" height="42" />
+        <span class="brand__text"><strong>ToolWizHub</strong><span>DEVKIT</span></span>
+      </a>
+    </header>
+    <main style="max-width:740px;margin:0 auto;">
+      <h1 class="work__title" style="margin:10px 0 18px;">Privacy</h1>
+      <div class="tool">
+        <p style="color:var(--soft);margin-bottom:14px;"><strong style="color:#fff;">Nothing you type leaves your device.</strong> Every tool — JWT decoding, hashing, regex, password generation, converters — runs locally in your browser using built-in Web APIs (Web Crypto, etc.). No input is ever sent to a server.</p>
+        <p style="color:var(--soft);margin-bottom:14px;">In particular: JWTs are <em>decoded</em> locally and never verified against a remote service; generated passwords and tokens use the browser’s cryptographic RNG and are never transmitted or stored.</p>
+        <p style="color:var(--soft);margin-bottom:14px;">No analytics, no cookies, no trackers. The only network requests are for the page’s own assets and Google Fonts.</p>
+        <p style="color:var(--muted);font-size:13px;">Still — never paste real production secrets into any web tool, including this one.</p>
+      </div>
+      <p style="text-align:center;margin-top:24px;"><a href="./">← Back to DevKit</a></p>
+    </main>
+  </div>
+</body>
+</html>
