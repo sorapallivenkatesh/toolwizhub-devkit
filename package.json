@@ -1,0 +1,14 @@
+{
+  "name": "toolwizhub-devkit",
+  "version": "1.0.0",
+  "description": "DevKit — in-browser developer utilities: JWT, regex, cron, hashing, UUID/ULID, epoch, password, and converters. 100% local, nothing uploaded.",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "site": "npx --yes serve -l 8096 .",
+    "start": "npx --yes serve -l 8096 ."
+  },
+  "keywords": ["jwt", "regex", "cron", "base64", "sha", "uuid", "ulid", "epoch", "password", "developer", "privacy", "toolwizhub"],
+  "license": "MIT",
+  "author": "ToolWizHub"
+}
