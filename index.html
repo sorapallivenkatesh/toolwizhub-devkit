@@ -55,18 +55,22 @@
     </div>
   </div>
 
-  <div class="app">
-    <header class="appbar">
-      <a class="brand" href="https://toolwizhub.com" aria-label="ToolWizHub DevKit">
-        <img class="brand__mark" src="assets/logo-icon.webp" alt="ToolWizHub" width="42" height="42" />
-        <span class="brand__text"><strong>ToolWizHub</strong><span>DEVKIT</span></span>
+  <div class="app app--ide">
+    <header class="ide-bar">
+      <a class="ide-brand" href="https://toolwizhub.com" aria-label="ToolWizHub DevKit">
+        <img class="ide-brand__mark" src="assets/logo-icon.webp" alt="" width="32" height="32" />
+        <span class="ide-brand__text"><strong>DevKit</strong><span>ToolWizHub</span></span>
       </a>
+      <button type="button" class="ide-search" id="cmdk-open" aria-haspopup="dialog" aria-controls="cmdk">
+        <span class="ide-search__icon" aria-hidden="true">⌕</span>
+        <span class="ide-search__placeholder">Find a tool…</span>
+        <kbd class="ide-search__kbd">⌘K</kbd>
+      </button>
       <span class="local-badge" title="Everything runs in your browser">🔒 100% local · no uploads</span>
     </header>
 
-    <nav class="toolbar">
-      <div class="tool-pills" id="tool-pills"></div>
-    </nav>
+    <nav class="ide-cats" id="cat-tabs" aria-label="Tool categories"></nav>
+    <nav class="ide-chips" id="tool-chips" aria-label="Tools in category"></nav>
 
     <main class="work">
       <div class="work__head">
@@ -77,6 +81,13 @@
       <div class="tool" id="tool-mount"></div>
     </main>
 
+    <div class="ide-statusbar" id="ide-status" role="status">
+      <span class="ide-statusbar__seg" id="status-enc">utf-8</span>
+      <span class="ide-statusbar__seg" id="status-bytes">0 bytes</span>
+      <span class="ide-statusbar__seg ide-statusbar__seg--grow" id="status-tool">DevKit</span>
+      <span class="ide-statusbar__seg ide-statusbar__seg--ok" id="status-state">ready</span>
+    </div>
+
     <footer class="app-footer">
       <a class="app-footer__brand" href="https://toolwizhub.com" target="_blank" rel="noopener" title="More free tools at ToolWizHub">
         <span class="app-footer__label">More free tools at</span>
@@ -84,6 +95,19 @@
       </a>
       <p class="app-footer__credit">100% client-side · nothing uploaded · <a href="privacy.html">Privacy</a></p>
     </footer>
+  </div>
+
+  <div class="cmdk" id="cmdk" hidden role="dialog" aria-modal="true" aria-label="Find a tool">
+    <div class="cmdk__scrim" data-cmdk-close></div>
+    <div class="cmdk__panel">
+      <div class="cmdk__head">
+        <span class="cmdk__icon" aria-hidden="true">⌕</span>
+        <input class="cmdk__input mono" id="cmdk-input" type="search" placeholder="Search tools…" autocomplete="off" spellcheck="false" />
+        <kbd class="cmdk__esc">esc</kbd>
+      </div>
+      <ul class="cmdk__list" id="cmdk-list" role="listbox"></ul>
+      <div class="cmdk__foot mono"><span>↑↓ navigate</span><span>↵ open</span><span>esc close</span></div>
+    </div>
   </div>
 
   <script type="module" src="js/main.js"></script>
