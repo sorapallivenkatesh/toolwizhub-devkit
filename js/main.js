@@ -9,10 +9,8 @@ import convertMod from './tools-convert.js';
 
 const MODULES = [encodeMod, tokensMod, timeMod, textMod, convertMod];
 const TOOLS = MODULES.flatMap((m) => m.tools.map((t) => ({ ...t, group: m.group })));
-const GROUPS = MODULES.map((m) => m.group);
 const findTool = (id) => TOOLS.find((t) => t.id === id) || TOOLS[0];
 
-let activeGroup = GROUPS[0];
 let cmdkIndex = 0;
 let cmdkResults = TOOLS;
 
@@ -23,34 +21,16 @@ function dismissSplash() {
   splash.addEventListener('click', () => splash.classList.add('is-hiding'));
 }
 
-function buildCats() {
-  const wrap = $('#cat-tabs');
-  wrap.innerHTML = '';
-  for (const g of GROUPS) {
-    const btn = el('button', { type: 'button', class: 'ide-cat', 'data-group': g }, g.toUpperCase());
-    btn.addEventListener('click', () => {
-      activeGroup = g;
-      buildChips(g);
-      const first = TOOLS.find((t) => t.group === g);
-      if (first) selectTool(first.id);
-    });
-    wrap.append(btn);
-  }
-}
-
-function buildChips(group) {
+function buildTools() {
   const wrap = $('#tool-chips');
   wrap.innerHTML = '';
-  TOOLS.filter((t) => t.group === group).forEach((t) => {
-    wrap.append(el('a', { class: 'ide-chip', href: `#${t.id}`, 'data-id': t.id }, t.label));
+  TOOLS.forEach((t) => {
+    wrap.append(el('a', { class: 'ide-chip', href: `#${t.id}`, 'data-id': t.id, title: `${t.group} · ${t.desc}` }, t.label));
   });
-  document.querySelectorAll('.ide-cat').forEach((b) => b.classList.toggle('is-active', b.dataset.group === group));
 }
 
 function selectTool(id) {
   const tool = findTool(id);
-  activeGroup = tool.group;
-  buildChips(tool.group);
   document.querySelectorAll('.ide-chip').forEach((a) => a.classList.toggle('is-active', a.dataset.id === tool.id));
   $('#tool-cat').textContent = tool.group;
   $('#tool-title').textContent = tool.label;
@@ -62,6 +42,7 @@ function selectTool(id) {
   if (can) can.setAttribute('href', `https://devkit.toolwizhub.com/#${tool.id}`);
   const mount = $('#tool-mount');
   mount.innerHTML = '';
+  mount.dataset.tool = tool.id;
   setStatus({ encoding: 'utf-8', bytes: 0, tool: tool.label, state: 'ready' });
   tool.render(mount);
   if (location.hash !== `#${tool.id}`) history.replaceState(null, '', `#${tool.id}`);
@@ -140,11 +121,14 @@ function initCmdk() {
 
 function init() {
   dismissSplash();
-  buildCats();
+  buildTools();
   initCmdk();
   window.addEventListener('hashchange', route);
   route();
-  if ('serviceWorker' in navigator) window.addEventListener('load', () => navigator.serviceWorker.register('sw.js').catch(() => {}));
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.getRegistrations().then((regs) => regs.forEach((r) => r.unregister())).catch(() => {});
+    if (window.caches) caches.keys().then((keys) => keys.forEach((k) => caches.delete(k))).catch(() => {});
+  }
 }
 
 document.addEventListener('DOMContentLoaded', init);
